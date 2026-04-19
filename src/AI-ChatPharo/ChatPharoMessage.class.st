@@ -38,13 +38,10 @@ Class {
 
 { #category : 'feedback' }
 ChatPharoMessage >> acceptSuggestion [
-	"Mark this message's suggestion as accepted"
 
 	suggestionAccepted := true.
 	suggestionRejected := false.
 	feedbackTimestamp := DateAndTime now.
-
-	"Submit to backend if enabled"
 	ChatPharoFeedbackSubmitter submitSuggestionAccepted: (Dictionary new
 			 at: 'messageId' put: self identityHash;
 			 at: 'content' put: content;
@@ -187,13 +184,10 @@ ChatPharoMessage >> presenter [
 
 { #category : 'feedback' }
 ChatPharoMessage >> rejectSuggestion [
-	"Mark this message's suggestion as rejected"
 
 	suggestionRejected := true.
 	suggestionAccepted := false.
-	feedbackTimestamp := DateAndTime now.
-
-	"Submit to backend if enabled"
+	feedbackTimestamp := DateAndTime now. 
 	ChatPharoFeedbackSubmitter submitSuggestionRejected: (Dictionary new
 			 at: 'messageId' put: self identityHash;
 			 at: 'content' put: content;
@@ -240,14 +234,12 @@ ChatPharoMessage >> suggestionRejected: aBoolean [
 
 { #category : 'initialization' }
 ChatPharoMessage >> thinking [
-	"Return the thinking content from the agent response"
 
 	^ thinking
 ]
 
 { #category : 'initialization' }
 ChatPharoMessage >> thinking: aString [
-	"Set the thinking content from the agent response"
 
 	thinking := aString
 ]
