@@ -25,64 +25,55 @@ Class {
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> cacheDuration [
-	"How long to cache developer IDs before refetching (1 hour)."
 
 	^ Duration hours: 1
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> cacheFileReference [
-	"Return the file reference for caching developer IDs locally."
 
 	^ ChatPharoSettings settingsDirectory / 'developer-ids-cache.txt'
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> cleanToken: aString [
-	"Clean a token string by removing whitespace and converting to lowercase."
 
 	^ aString trimBoth asLowercase
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> developerIdsUrl [
-	"Return the URL for fetching authorized developer IDs."
 
 	^ 'https://raw.githubusercontent.com/pharo-llm/pharo-llm.github.io/main/token.txt'
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> fetchDeveloperIds [
-	"Fetch the list of authorized developer IDs from the remote server.
-	Returns a collection of ID strings, or an empty collection on error."
 
 	| response ids |
 	[
 		response := ZnClient new
-			url: self developerIdsUrl;
-			timeout: 10;
-			get.
+			            url: self developerIdsUrl;
+			            timeout: 10;
+			            get.
 		ids := self parseDeveloperIds: response.
 		self saveCacheLocally: ids.
 		cachedDeveloperIds := ids.
 		lastFetchTime := DateAndTime now.
-		ChatPharoLogger logSystem: 'Developer IDs fetched'
-			details: (Dictionary new
-				at: 'count' put: ids size;
-				yourself).
-		^ ids
-	] on: Error do: [ :e |
-		ChatPharoLogger logSystem: 'Developer IDs fetch failed'
-			details: (Dictionary new
-				at: 'error' put: e messageText;
-				yourself).
-		^ self loadCachedDeveloperIds
-	]
+		ChatPharoLogger logSystem: 'Developer IDs fetched' details: (Dictionary new
+				 at: 'count' put: ids size;
+				 yourself).
+		^ ids ]
+		on: Error
+		do: [ :e |
+				ChatPharoLogger logSystem: 'Developer IDs fetch failed' details: (Dictionary new
+						 at: 'error' put: e messageText;
+						 yourself).
+				^ self loadCachedDeveloperIds ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> generateLocalDeveloperId [
-	"Generate and store a local developer ID for testing."
 
 	| token |
 	token := UUID new asString.
@@ -92,12 +83,9 @@ ChatPharoDeveloperConfig class >> generateLocalDeveloperId [
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> getDeveloperIds [
-	"Get developer IDs, either from cache or by fetching if cache is stale."
 
 	| shouldRefetch |
-	shouldRefetch := cachedDeveloperIds isNil or: [
-		lastFetchTime isNil or: [
-			(DateAndTime now - lastFetchTime) > self cacheDuration ] ].
+	shouldRefetch := cachedDeveloperIds isNil or: [ lastFetchTime isNil or: [ DateAndTime now - lastFetchTime > self cacheDuration ] ].
 
 	shouldRefetch
 		ifTrue: [ ^ self fetchDeveloperIds ]
@@ -106,59 +94,56 @@ ChatPharoDeveloperConfig class >> getDeveloperIds [
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> loadCachedDeveloperIds [
-	"Load developer IDs from local cache file."
 
 	| cacheFile |
 	cacheFile := self cacheFileReference.
 	cacheFile exists ifFalse: [ ^ OrderedCollection new ].
 
 	^ [
-		| content |
-		content := cacheFile readStreamDo: [ :stream | stream contents ].
-		self parseDeveloperIds: content
-	] on: Error do: [ OrderedCollection new ]
+		  | content |
+		  content := cacheFile readStreamDo: [ :stream | stream contents ].
+		  self parseDeveloperIds: content ]
+		  on: Error
+		  do: [ OrderedCollection new ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> loadLocalDeveloperIds [
-	"Load locally generated developer IDs from disk."
 
 	| localFile |
 	localFile := self localTokensFileReference.
 	localFile exists ifFalse: [ ^ OrderedCollection new ].
 
 	^ [
-		| content |
-		content := localFile readStreamDo: [ :stream | stream contents ].
-		self parseDeveloperIds: content
-	] on: Error do: [ OrderedCollection new ]
+		  | content |
+		  content := localFile readStreamDo: [ :stream | stream contents ].
+		  self parseDeveloperIds: content ]
+		  on: Error
+		  do: [ OrderedCollection new ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> localTokensFileReference [
-	"Return the file reference for locally generated developer IDs."
 
 	^ ChatPharoSettings settingsDirectory / 'developer-ids-local.txt'
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> parseDeveloperIds: aString [
-	"Parse a string containing developer IDs (one per line) into a collection."
 
 	| ids |
 	aString ifNil: [ ^ OrderedCollection new ].
 
 	ids := OrderedCollection new.
-	(aString lines) do: [ :line |
-		| cleaned |
-		cleaned := self cleanToken: line.
-		cleaned ifNotEmpty: [ ids add: cleaned ] ].
+	aString lines do: [ :line |
+			| cleaned |
+			cleaned := self cleanToken: line.
+			cleaned ifNotEmpty: [ ids add: cleaned ] ].
 	^ ids
 ]
 
-{ #category : 'accessing' }
+{ #category : 'class initialization' }
 ChatPharoDeveloperConfig class >> reset [
-	"Reset the cached developer IDs."
 
 	<script>
 	cachedDeveloperIds := nil.
@@ -167,42 +152,50 @@ ChatPharoDeveloperConfig class >> reset [
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> saveCacheLocally: ids [
-	"Save the developer IDs to a local cache file."
 
 	| cacheFile |
 	cacheFile := self cacheFileReference.
 	cacheFile parent ensureCreateDirectory.
 
-	[ cacheFile writeStreamDo: [ :stream |
-		ids do: [ :id | stream nextPutAll: id; cr ] ]
-	] on: Error do: [ "Ignore cache write errors" ]
+	[
+		cacheFile writeStreamDo: [ :stream |
+				ids do: [ :id |
+						stream
+							nextPutAll: id;
+							cr ] ] ]
+		on: Error
+		do: [ "Ignore cache write errors" ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> saveLocalDeveloperId: aString [
-	"Persist a locally generated developer ID."
 
 	| localFile cleaned |
+	self flag: 'this method does not work'.
 	cleaned := self cleanToken: aString.
 	cleaned ifEmpty: [ ^ self ].
 
 	localFile := self localTokensFileReference.
 	localFile parent ensureCreateDirectory.
 
-	[ localFile exists
-		ifTrue: [
-			localFile appendStreamDo: [ :stream |
-				stream nextPutAll: cleaned; cr ] ]
-		ifFalse: [
-			localFile writeStreamDo: [ :stream |
-				stream nextPutAll: cleaned; cr ] ] ]
-		on: Error do: [ "Ignore local token write errors" ]
+	[
+		localFile exists
+			ifTrue: [
+					localFile appendStreamDo: [ :stream |
+							stream
+								nextPutAll: cleaned;
+								cr ] ]
+			ifFalse: [
+					localFile writeStreamDo: [ :stream |
+							stream
+								nextPutAll: cleaned;
+								cr ] ] ]
+		on: Error
+		do: [ "Ignore local token write errors" ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> verifyDeveloperId: aString [
-	"Verify if the given developer ID is in the list of authorized developers.
-	Returns true if authorized, false otherwise."
 
 	| cleanedInput ids localIds |
 	aString ifNil: [ ^ false ].
@@ -212,15 +205,14 @@ ChatPharoDeveloperConfig class >> verifyDeveloperId: aString [
 	ids := self getDeveloperIds ifNil: [ OrderedCollection new ].
 	localIds := self loadLocalDeveloperIds.
 
-	^ (ids , localIds) anySatisfy: [ :id | id = cleanedInput ]
+	^ ids , localIds anySatisfy: [ :id | id = cleanedInput ]
 ]
 
 { #category : 'accessing' }
 ChatPharoDeveloperConfig class >> verifyDeveloperIdAsync: aString onComplete: aBlock [
-	"Verify developer ID asynchronously. Calls aBlock with true/false result."
 
-	[ | result |
+	[
+		| result |
 		result := self verifyDeveloperId: aString.
-		aBlock value: result
-	] fork
+		aBlock value: result ] fork
 ]

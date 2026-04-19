@@ -83,13 +83,10 @@ ChatPharoCommandResult >> commandName: anObject [
 
 { #category : 'accessing' }
 ChatPharoCommandResult >> execute: aChat [
-	"Execute the command with the given chat context"
 
-	self isUnknown ifTrue: [
-		^ 'Unknown command: ', prefix, commandName, '. Type /help for available commands.' ].
+	self isUnknown ifTrue: [ ^ 'Unknown command: ' , prefix , commandName , '. Type /help for available commands.' ].
 
-	self isCommand ifFalse: [
-		^ self error: 'Cannot execute a non-command result' ].
+	self isCommand ifFalse: [ ^ self error: 'Cannot execute a non-command result' ].
 
 	^ handler value: aChat value: args
 ]

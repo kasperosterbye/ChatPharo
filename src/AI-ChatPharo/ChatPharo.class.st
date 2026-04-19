@@ -134,18 +134,11 @@ ChatPharo class >> code: sourceText [
 
 { #category : 'context' }
 ChatPharo class >> codeAndFixFromDebugger: aStDebugger [
-	"Intelligent debugging: extract full error context from the debugger
-	 (exception, stack trace, variables, receiver state) and open a
-	 ChatPharo session with a rich diagnostic prompt and debugger-
-	 specific tools that the LLM can use to investigate further."
 
 	| debugCtx debugEnv prompt details |
 	debugCtx := ChatPharoDebuggerContext fromDebugger: aStDebugger.
-	debugEnv := ChatPharoDebuggerEnvironment forContext: debugCtx.
-
-	"Register debugger tools as temporal tools so the LLM can call them"
-	debugEnv tools do: [ :tool |
-		ChatPharoTemporalToolRegistry current registerClient: tool ].
+	debugEnv := ChatPharoDebuggerEnvironment forContext: debugCtx. 
+	debugEnv tools do: [ :tool | ChatPharoTemporalToolRegistry current registerClient: tool ].
 
 	prompt := debugCtx diagnosticPrompt.
 	details := Dictionary new.
@@ -159,10 +152,9 @@ ChatPharo class >> codeAndFixFromDebugger: aStDebugger [
 		  prompt: prompt
 		  additionalDetails: details
 		  customizeAgent: [ :agent |
-			  agent systemPrompt: debugCtx systemPromptForDebugging.
-			  debugCtx failingPackageName ifNotNil: [
-				  (agent respondsTo: #packageName:)
-					  ifTrue: [ agent packageName: debugCtx failingPackageName ] ] ]
+				  agent systemPrompt: debugCtx systemPromptForDebugging.
+				  debugCtx failingPackageName ifNotNil: [
+					  (agent respondsTo: #packageName:) ifTrue: [ agent packageName: debugCtx failingPackageName ] ] ]
 ]
 
 { #category : 'tests' }

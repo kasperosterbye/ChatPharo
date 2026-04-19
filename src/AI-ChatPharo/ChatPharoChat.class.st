@@ -160,18 +160,12 @@ ChatPharoChat >> agent: anObject [
 
 { #category : 'private' }
 ChatPharoChat >> buildPromptPrefixWithMemoryFor: queryText [
-	"Build the prompt prefix including memory context if enabled"
 
 	| prefix memoryContext |
-	prefix := history asPromptPrefix.
-
-	"Add memory context if enabled"
-	(ChatPharoSettings default memoryEnabled and: [
-		 self class environment includesKey: #ChatPharoMemory ]) ifTrue: [
-		memoryContext := (self class environment at: #ChatPharoMemory) default
-			                 contextForQuery: queryText.
-		memoryContext ifNotEmpty: [
-			prefix := memoryContext , String cr , prefix ] ].
+	prefix := history asPromptPrefix. 
+	(ChatPharoSettings default memoryEnabled and: [ self class environment includesKey: #ChatPharoMemory ]) ifTrue: [
+			memoryContext := (self class environment at: #ChatPharoMemory) default contextForQuery: queryText.
+			memoryContext ifNotEmpty: [ prefix := memoryContext , String cr , prefix ] ].
 
 	^ prefix
 ]
@@ -191,14 +185,11 @@ ChatPharoChat >> clearCache [
 { #category : 'running' }
 ChatPharoChat >> clearChat [
 
-	"Save conversation summary to memory before clearing"
 	self summarizeConversationToMemory.
 	self cancelMessage.
 	history clear.
 	messages removeAll.
 	self clearCache.
-	"Drop any ""always allow"" approvals the user granted during the chat
-	 so that the next conversation starts with a fresh confirmation gate."
 	ChatPharoToolConfirmation default clearSessionApprovals
 ]
 
@@ -220,27 +211,22 @@ ChatPharoChat >> exportAsJson [
 
 { #category : 'running' }
 ChatPharoChat >> extractNameFrom: text startingAfter: startIndex [
-	"Extract a reasonable name candidate from text starting at startIndex."
 
 	| remainder candidate splitters |
 	remainder := (text copyFrom: startIndex + 1 to: text size) trimBoth.
-	[ remainder notEmpty and: [ '.,!?;' includes: remainder last ] ] whileTrue: [
-		remainder := remainder allButLast ].
+	[ remainder notEmpty and: [ '.,!?;' includes: remainder last ] ] whileTrue: [ remainder := remainder allButLast ].
 	remainder ifEmpty: [ ^ nil ].
 
-	splitters := #(' and ' ' but ' ' so ' ' because ' ' that ').
+	splitters := #( ' and ' ' but ' ' so ' ' because ' ' that ' ).
 	candidate := remainder.
 	splitters do: [ :splitter |
-		| index |
-		index := candidate findString: splitter startingAt: 1.
-		index > 0 ifTrue: [
-			candidate := (candidate copyFrom: 1 to: index - 1) trimBoth ] ].
+			| index |
+			index := candidate findString: splitter startingAt: 1.
+			index > 0 ifTrue: [ candidate := (candidate copyFrom: 1 to: index - 1) trimBoth ] ].
 
 	candidate ifEmpty: [ ^ nil ].
-	(candidate first isLetter) ifFalse: [ ^ nil ].
-	(candidate allSatisfy: [ :char |
-		char isLetter or: [ char = $  or: [ char = $- or: [ char = $' ] ] ] ])
-		ifFalse: [ ^ nil ].
+	candidate first isLetter ifFalse: [ ^ nil ].
+	(candidate allSatisfy: [ :char | char isLetter or: [ char = $  or: [ char = $- or: [ char = $' ] ] ] ]) ifFalse: [ ^ nil ].
 
 	^ candidate
 ]
@@ -249,9 +235,9 @@ ChatPharoChat >> extractNameFrom: text startingAfter: startIndex [
 ChatPharoChat >> generateTitleFrom: userText [
 
 	| titleAgent prompt result cleanTitle |
-	
 	ChatPharoSettings default dynamicChatNamingEnabled ifFalse: [ ^ self ].
 	titleAgent := self agent copyForChat.
+	"TODO : Maybe this title can be more precise to let the model do not generate other stuff"
 	prompt := 'Give a short title of 3 to 5 words for a chat conversation that starts with this message. Each word must be separated by a space. Use title case. Reply with the title only, no punctuation, no quotes, no extra explanation: '
 	          , userText.
 	[
@@ -300,8 +286,6 @@ ChatPharoChat >> historyPromptPrefix [
 
 { #category : 'accessing' }
 ChatPharoChat >> importFromJson: aJsonString [
-	"Import a chat from a JSON string. The JSON should be an array of message objects
-    with 'role' and 'content' keys, optionally with 'tool_calls' for assistant messages."
 
 	| parsedMessages currentUserContent lastRole lastContent |
 	self clearChat.
@@ -324,9 +308,9 @@ ChatPharoChat >> importFromJson: aJsonString [
 										             id: (tcDict at: 'id' ifAbsent: [ '' ])
 										             functionName: (funcDict at: 'name' ifAbsent: [ '' ])
 										             arguments: (funcDict at: 'arguments' ifAbsent: [ '' ])
-										             content: nil ] ]. "Add to history"
+										             content: nil ] ]. 
 					historyMsg := ChatPharoHistoryMessage role: role content: content toolCalls: toolCalls.
-					history addMessage: historyMsg. "Build UI messages - pair user with assistant"
+					history addMessage: historyMsg.
 					role = 'user' ifTrue: [ currentUserContent := content ].
 					role = 'assistant' ifTrue: [
 							messages add: (ChatPharoMessage new
@@ -365,9 +349,8 @@ ChatPharoChat >> initialize [
 
 { #category : 'accessing' }
 ChatPharoChat >> jsonStringFor: anObject [
-	"Serialize JSON while ignoring shared reference warnings."
 
-^ STONJSON toString: anObject
+	^ STONJSON toString: anObject
 ]
 
 { #category : 'accessing' }
@@ -407,53 +390,43 @@ ChatPharoChat >> presenter [
 
 { #category : 'memory' }
 ChatPharoChat >> recordFeedback: feedbackText positive: isPositive [
-	"Record user feedback as a memory item"
+	(ChatPharoSettings default memoryEnabled and: [ self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
 
-	(ChatPharoSettings default memoryEnabled and: [
-		 self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
-
-	(self class environment at: #ChatPharoMemory) default
-		addFeedback: feedbackText
-		positive: isPositive.
-		
-	"Submit feedback to backend if enabled"
+	(self class environment at: #ChatPharoMemory) default addFeedback: feedbackText positive: isPositive. "Submit feedback to backend if enabled"
 	(self class environment includesKey: #ChatPharoFeedbackSubmitter) ifTrue: [
-		(self class environment at: #ChatPharoFeedbackSubmitter) submitFeedback: (Dictionary new
-				 at: 'type' put: (isPositive ifTrue: [ 'positive' ] ifFalse: [ 'negative' ]);
-				 at: 'content' put: feedbackText;
-				 at: 'chatId' put: self identityHash;
-				 yourself) ].
+			(self class environment at: #ChatPharoFeedbackSubmitter) submitFeedback: (Dictionary new
+					 at: 'type' put: (isPositive
+							  ifTrue: [ 'positive' ]
+							  ifFalse: [ 'negative' ]);
+					 at: 'content' put: feedbackText;
+					 at: 'chatId' put: self identityHash;
+					 yourself) ].
 
-	ChatPharoLogger logSystem: 'Feedback recorded to memory'
-		details: (Dictionary new
-				 at: 'positive' put: isPositive;
-				 yourself)
+	ChatPharoLogger logSystem: 'Feedback recorded to memory' details: (Dictionary new
+			 at: 'positive' put: isPositive;
+			 yourself)
 ]
 
 { #category : 'memory' }
 ChatPharoChat >> recordUserCorrection: correctionText [
-	"Record a user correction as a memory item"
 
-	(ChatPharoSettings default memoryEnabled and: [
-		 self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
+	(ChatPharoSettings default memoryEnabled and: [ self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
 
-	(self class environment at: #ChatPharoMemory) default
-		addCorrection: correctionText.
+	(self class environment at: #ChatPharoMemory) default addCorrection: correctionText.
 
-	ChatPharoLogger logSystem: 'Correction recorded to memory'
-		details: (Dictionary new
-				 at: 'correction' put: (correctionText truncateTo: 50);
-				 yourself)
+	ChatPharoLogger logSystem: 'Correction recorded to memory' details: (Dictionary new
+			 at: 'correction' put: (correctionText truncateTo: 50);
+			 yourself)
 ]
 
 { #category : 'running' }
 ChatPharoChat >> recordUserNameIfPresentIn: text [
-	"Detect and record the user's name from common phrases (e.g., 'my name is Omar')."
 
 	| lowerText prefixes name |
 	text ifNil: [ ^ self ].
 	(text respondsTo: #content) ifTrue: [ ^ self recordUserNameIfPresentIn: text content ].
 	lowerText := text asString asLowercase.
+	"TODO: make this prefixes wider and cover other prefixes"
 	prefixes := #( 'my name is ' 'i am ' 'i''m ' 'im ' 'call me ' 'you can call me ' ).
 
 	name := nil.
@@ -469,18 +442,14 @@ ChatPharoChat >> recordUserNameIfPresentIn: text [
 
 { #category : 'memory' }
 ChatPharoChat >> recordUserPreference: preferenceText [
-	"Record a user preference as a memory item"
 
-	(ChatPharoSettings default memoryEnabled and: [
-		 self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
+	(ChatPharoSettings default memoryEnabled and: [ self class environment includesKey: #ChatPharoMemory ]) ifFalse: [ ^ self ].
 
-	(self class environment at: #ChatPharoMemory) default
-		addUserPreference: preferenceText.
+	(self class environment at: #ChatPharoMemory) default addUserPreference: preferenceText.
 
-	ChatPharoLogger logSystem: 'User preference recorded to memory'
-		details: (Dictionary new
-				 at: 'preference' put: (preferenceText truncateTo: 50);
-				 yourself)
+	ChatPharoLogger logSystem: 'User preference recorded to memory' details: (Dictionary new
+			 at: 'preference' put: (preferenceText truncateTo: 50);
+			 yourself)
 ]
 
 { #category : 'accessing' }
@@ -510,15 +479,13 @@ ChatPharoChat >> requestNewChat [
 { #category : 'initialization' }
 ChatPharoChat >> resetConversation [
 
-"Save conversation summary to memory before resetting"
 	self summarizeConversationToMemory.
-	
+
 	self cancelMessage.
 	history clear.
 	messages removeAll.
 	self clearCache.
-	(ChatPharoSettings default welcomeMessageEnabled)
-		ifTrue: [ self addWelcomeMessage ].
+	ChatPharoSettings default welcomeMessageEnabled ifTrue: [ self addWelcomeMessage ].
 	self notifyChatReset
 ]
 
@@ -659,34 +626,30 @@ ChatPharoChat >> sendMessageViaMultivers: aText [
 
 { #category : 'memory' }
 ChatPharoChat >> summarizeConversationToMemory [
-	"Create a summary of this conversation and store it in memory.
-	 This is typically called when the chat is closed or cleared."
 
 	| summary messageCount |
 	(ChatPharoSettings default memoryEnabled and: [
-		 ChatPharoSettings default memoryAutoSummarize and: [
-			 self class environment includesKey: #ChatPharoMemory ] ]) ifFalse: [ ^ self ].
+		 ChatPharoSettings default memoryAutoSummarize and: [ self class environment includesKey: #ChatPharoMemory ] ]) ifFalse: [
+		^ self ].
 
 	messageCount := messages size.
-	messageCount < 2 ifTrue: [ ^ self ]. "Don't summarize trivial conversations"
+	messageCount < 2 ifTrue: [ ^ self ].
 
 	summary := String streamContents: [ :stream |
-		           stream nextPutAll: 'Conversation with '.
-		           stream nextPutAll: messageCount asString.
-		           stream nextPutAll: ' exchanges. Topics discussed: '.
-		           (messages first: (3 min: messageCount)) do: [ :msg |
-			           msg content ifNotNil: [ :c |
-				           stream
-					           nextPutAll: (c truncateTo: 50);
-					           nextPutAll: '; ' ] ] ].
+			           stream nextPutAll: 'Conversation with '.
+			           stream nextPutAll: messageCount asString.
+			           stream nextPutAll: ' exchanges. Topics discussed: '.
+			           (messages first: (3 min: messageCount)) do: [ :msg |
+					           msg content ifNotNil: [ :c |
+							           stream
+								           nextPutAll: (c truncateTo: 50);
+								           nextPutAll: '; ' ] ] ].
 
-	(self class environment at: #ChatPharoMemory) default
-		addConversationSummary: summary.
+	(self class environment at: #ChatPharoMemory) default addConversationSummary: summary.
 
-	ChatPharoLogger logSystem: 'Conversation summarized to memory'
-		details: (Dictionary new
-				 at: 'messageCount' put: messageCount;
-				 yourself)
+	ChatPharoLogger logSystem: 'Conversation summarized to memory' details: (Dictionary new
+			 at: 'messageCount' put: messageCount;
+			 yourself)
 ]
 
 { #category : 'running' }
