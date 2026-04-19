@@ -1209,76 +1209,69 @@ ChatPharoSettings >> privateSetDeveloperId: aString [
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetEthicsDirector: aDirector [
-	"Set ethicsDirector without triggering save. Used during loading."
 	ethicsDirector := aDirector
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetEthicsDirectorEnabled: aBoolean [
-	"Set ethicsDirectorEnabled without triggering save. Used during loading."
 	ethicsDirectorEnabled := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetEthicsMandate: aString [
-	"Set ethicsMandate without triggering save. Used during loading."
+
 	ethicsMandate := aString
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetExternalApiWarningDismissed: aBoolean [
-	"Set externalApiWarningDismissed without triggering save. Used during loading."
+
 	externalApiWarningDismissed := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetIsConfigured: aBoolean [
-	"Set isConfigured without triggering save. Used during loading."
+
 	isConfigured := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetIsDeveloper: aBoolean [
-	"Set isDeveloper without triggering save. Used during loading."
+
 	isDeveloper := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMcpEnabled: aBoolean [
-	"Set mcpEnabled without triggering save. Used during loading."
+
 	mcpEnabled := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMcpRegistry: aRegistry [
-	"Set mcpRegistry without triggering save. Used during loading."
+
 	mcpRegistry := aRegistry
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMemoryAutoSummarize: aBoolean [
-	"Set memoryAutoSummarize without triggering save. Used during loading."
-
 	memoryAutoSummarize := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMemoryEnabled: aBoolean [
-	"Set memoryEnabled without triggering save. Used during loading."
 
 	memoryEnabled := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMemoryMaxItems: aNumber [
-	"Set memoryMaxItems without triggering save. Used during loading."
 
 	memoryMaxItems := aNumber
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetMemoryRetentionDays: aNumber [
-	"Set memoryRetentionDays without triggering save. Used during loading."
 
 	memoryRetentionDays := aNumber
 ]
@@ -1295,87 +1288,85 @@ ChatPharoSettings >> privateSetMessageLimit: aNumber [
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetSandboxEnabled: aBoolean [
-	"Set sandboxEnabled without triggering save. Used during loading."
+
 	sandboxEnabled := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetSandboxRestrictFileSystem: aBoolean [
-	"Set sandboxRestrictFileSystem without triggering save. Used during loading."
+
 	sandboxRestrictFileSystem := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetSandboxRestrictNetwork: aBoolean [
-	"Set sandboxRestrictNetwork without triggering save. Used during loading."
+
 	sandboxRestrictNetwork := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetSandboxRestrictSystemAccess: aBoolean [
-	"Set sandboxRestrictSystemAccess without triggering save. Used during loading."
+
 	sandboxRestrictSystemAccess := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetSandboxTimeout: anInteger [
-	"Set sandboxTimeout without triggering save. Used during loading."
+
 	sandboxTimeout := anInteger
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetTimeBudgetMinutes: aNumber [
-	"Set timeBudgetMinutes without triggering save. Used during loading."
+
 	timeBudgetMinutes := aNumber
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetTokenBudget: aNumber [
-	"Set tokenBudget without triggering save. Used during loading."
+
 	tokenBudget := aNumber
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> privateSetTutorialCompleted: aBoolean [
-	"Set tutorialCompleted without triggering save. Used during loading."
+
 	tutorialCompleted := aBoolean
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> privateSetUserLevel: aString [
-	"Set userLevel without triggering save. Used during loading."
+
 	userLevel := aString
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetUserName: aString [
-	"Set userName without triggering save. Used during loading."
+
 	userName := aString
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetUserOrganization: aString [
-	"Set userOrganization without triggering save. Used during loading."
+
 	userOrganization := aString
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> privateSetWantsTutorial: aBoolean [
-	"Set wantsTutorial without triggering save. Used during loading."
+
 	wantsTutorial := aBoolean
 ]
 
 { #category : 'custom tools' }
 ChatPharoSettings >> removeCustomTool: aCustomTool [
-	"Remove a custom tool from the collection"
 
 	customTools remove: aCustomTool ifAbsent: [ ].
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logFrontend: 'Custom tool removed'
-		details: (Dictionary new
-			at: 'tool' put: aCustomTool name;
-			yourself)
+	ChatPharoLogger logFrontend: 'Custom tool removed' details: (Dictionary new
+			 at: 'tool' put: aCustomTool name;
+			 yourself)
 ]
 
 { #category : 'skills' }
@@ -1394,14 +1385,11 @@ ChatPharoSettings >> removeSkillFilePath: aPathString [
 
 { #category : 'custom tools' }
 ChatPharoSettings >> replaceCustomTool: oldTool with: newTool [
-	"Replace an existing custom tool, preserving order and preventing name collisions."
 
 	| index |
 	self assertCustomToolNameAvailable: newTool name excluding: oldTool.
 	index := self customTools indexOf: oldTool ifAbsent: [ nil ].
-	index
-		ifNil: [ customTools add: newTool ]
-		ifNotNil: [ customTools at: index put: newTool ].
+	index ifNil: [ customTools add: newTool ] ifNotNil: [ customTools at: index put: newTool ].
 	self class setDefault: self.
 	self class saveDefault
 ]
@@ -1530,7 +1518,6 @@ ChatPharoSettings >> skillFilePaths: aCollection [
 
 { #category : 'skills' }
 ChatPharoSettings >> skillToolsEnabled [
-	"Whether skill tools (list_available_skills, get_skill_context) are available to the LLM"
 
 	^ skillToolsEnabled ifNil: [ skillToolsEnabled := true ]
 ]
@@ -1549,7 +1536,6 @@ ChatPharoSettings >> skillToolsEnabled: aBoolean [
 
 { #category : 'skills' }
 ChatPharoSettings >> skillsEnabled [
-	"Collection of manually enabled skill names"
 
 	^ skillsEnabled ifNil: [ skillsEnabled := OrderedCollection new ]
 ]
@@ -1596,22 +1582,19 @@ ChatPharoSettings >> tokenBudget: aNumber [
 
 { #category : 'initialization' }
 ChatPharoSettings >> tutorialCompleted [
-	"Returns whether the user has completed the ChatPharo tutorial"
 
 	^ tutorialCompleted ifNil: [ tutorialCompleted := false ]
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> tutorialCompleted: aBoolean [
-	"Set whether the tutorial has been completed"
 
 	tutorialCompleted := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logSystem: 'Tutorial completion status updated'
-		details: (Dictionary new
-			at: 'tutorialCompleted' put: aBoolean;
-			yourself)
+	ChatPharoLogger logSystem: 'Tutorial completion status updated' details: (Dictionary new
+			 at: 'tutorialCompleted' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'initialization' }
@@ -1641,34 +1624,29 @@ ChatPharoSettings >> useModel: aModelName [
 
 { #category : 'initialization' }
 ChatPharoSettings >> userLevel [
-	"Returns the user's experience level: 'beginner', 'intermediate', or 'advanced'"
 
 	^ userLevel ifNil: [ userLevel := 'beginner' ]
 ]
 
 { #category : 'initialization' }
-ChatPharoSettings >> userLevel: aString [ 
-	"Set the user's experience level"
+ChatPharoSettings >> userLevel: aString [
 
 	userLevel := aString.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logSystem: 'User level updated'
-		details: (Dictionary new
-			at: 'userLevel' put: aString;
-			yourself)
+	ChatPharoLogger logSystem: 'User level updated' details: (Dictionary new
+			 at: 'userLevel' put: aString;
+			 yourself)
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> userLevelDisplayName [
-	"Returns a user-friendly display name for the current level"
 
 	^ self userLevelDisplayNameFor: self userLevel
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> userLevelDisplayNameFor: aLevel [
-	"Returns a user-friendly display name for the given level"
 
 	aLevel = 'beginner' ifTrue: [ ^ 'Beginner - New to Pharo' ].
 	aLevel = 'intermediate' ifTrue: [ ^ 'Intermediate - Familiar with Pharo basics' ].
@@ -1714,22 +1692,19 @@ ChatPharoSettings >> userOrganization: aString [
 
 { #category : 'initialization' }
 ChatPharoSettings >> wantsTutorial [
-	"Returns whether the user opted to see the tutorial"
 
 	^ wantsTutorial ifNil: [ wantsTutorial := false ]
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> wantsTutorial: aBoolean [
-	"Set whether the user wants to see the tutorial"
 
 	wantsTutorial := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logSystem: 'Tutorial preference updated'
-		details: (Dictionary new
-			at: 'wantsTutorial' put: aBoolean;
-			yourself)
+	ChatPharoLogger logSystem: 'Tutorial preference updated' details: (Dictionary new
+			 at: 'wantsTutorial' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'accessing' }
