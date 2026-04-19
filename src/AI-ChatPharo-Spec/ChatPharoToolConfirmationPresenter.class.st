@@ -46,15 +46,6 @@ Class {
 	#tag : 'Confirmation'
 }
 
-{ #category : 'class initialization' }
-ChatPharoToolConfirmationPresenter class >> initialize [
-	"Install this presenter as the active gate on ChatPharoToolConfirmation
-	 as soon as the class is loaded. This is the single line responsible
-	 for swapping the UIManager-based fallback for the rich Spec dialog."
-
-	ChatPharoToolConfirmation default gate: self
-]
-
 { #category : 'gate' }
 ChatPharoToolConfirmationPresenter class >> confirmToolNamed: aToolName arguments: anArguments action: actionLabel summary: summaryString [
 	"Gate entry point invoked by ChatPharoToolConfirmation. Tool calls
@@ -106,6 +97,15 @@ ChatPharoToolConfirmationPresenter class >> deferConfirmationFor: aToolName argu
 	^ (answerHolder at: 1) ifNil: [ ChatPharoToolConfirmationDecision deny ]
 ]
 
+{ #category : 'class initialization' }
+ChatPharoToolConfirmationPresenter class >> initialize [
+	"Install this presenter as the active gate on ChatPharoToolConfirmation
+	 as soon as the class is loaded. This is the single line responsible
+	 for swapping the UIManager-based fallback for the rich Spec dialog."
+
+	ChatPharoToolConfirmation default gate: self
+]
+
 { #category : 'gate' }
 ChatPharoToolConfirmationPresenter class >> isOnUIProcess [
 	"Return true if we are currently executing on the Morphic UI process.
@@ -144,6 +144,13 @@ ChatPharoToolConfirmationPresenter >> accept [
 	self closeWindow
 ]
 
+{ #category : 'actions' }
+ChatPharoToolConfirmationPresenter >> acceptAlways [
+
+	decision := ChatPharoToolConfirmationDecision always.
+	self closeWindow
+]
+
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> actionLabel [
 
@@ -154,13 +161,6 @@ ChatPharoToolConfirmationPresenter >> actionLabel [
 ChatPharoToolConfirmationPresenter >> actionLabel: aString [
 
 	actionLabel := aString
-]
-
-{ #category : 'actions' }
-ChatPharoToolConfirmationPresenter >> acceptAlways [
-
-	decision := ChatPharoToolConfirmationDecision always.
-	self closeWindow
 ]
 
 { #category : 'accessing' }
@@ -198,30 +198,31 @@ ChatPharoToolConfirmationPresenter >> connectPresenters [
 	denyButton action: [ self reject ]
 ]
 
-{ #category : 'layout' }
-ChatPharoToolConfirmationPresenter >> defaultLayout [
-
-	^ SpBoxLayout newTopToBottom
-		spacing: 10;
-		borderWidth: 18;
-		add: headlineLabel expand: false;
-		add: toolNameLabel expand: false;
-		add: descriptionText expand: false;
-		add: 'Arguments' expand: false;
-		add: argumentsTable;
-		add: (SpBoxLayout newLeftToRight
-				addLast: denyButton;
-				addLast: alwaysButton;
-				addLast: allowButton;
-				yourself)
-			expand: false;
-		yourself
-]
-
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> decision [
 
 	^ decision
+]
+
+{ #category : 'layout' }
+ChatPharoToolConfirmationPresenter >> defaultLayout [
+
+	^ SpBoxLayout newTopToBottom
+		  spacing: 10;
+		  borderWidth: 20;
+		  add: headlineLabel expand: false;
+		  add: toolNameLabel expand: false;
+		  add: descriptionText expand: false;
+		  add: 'Arguments' expand: false;
+		  add: argumentsTable;
+		  add: (SpBoxLayout newLeftToRight
+				   spacing: 10;
+				   addLast: denyButton expand: false;
+				   addLast: alwaysButton expand: false;
+				   addLast: allowButton expand: false;
+				   yourself)
+		  expand: false;
+		  yourself
 ]
 
 { #category : 'initialization' }
@@ -246,7 +247,7 @@ ChatPharoToolConfirmationPresenter >> initializePresenters [
 
 	descriptionText := self newText
 		text: (summaryString ifNil: [
-			'The AI wants to modify the live Pharo image. Review the arguments below before authorising this call.' ]);
+			'ChatPharo wants to modify your image. Review the arguments below before authorising this call.' ]);
 		beNotEditable;
 		yourself.
 
@@ -262,8 +263,8 @@ ChatPharoToolConfirmationPresenter >> initializePresenters [
 		yourself.
 
 	alwaysButton := self newButton
-		label: 'Always in this chat';
-		icon: (self iconNamed: #smallOkUncommitted);
+		label: 'Always Allow';
+		icon: (self iconNamed: #glamorousSpawn);
 		yourself.
 
 	denyButton := self newButton

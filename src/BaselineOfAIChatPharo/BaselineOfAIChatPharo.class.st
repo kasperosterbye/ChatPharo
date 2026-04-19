@@ -133,18 +133,12 @@ BaselineOfAIChatPharo >> baseline: spec [
 
 { #category : 'baselines' }
 BaselineOfAIChatPharo >> postLoad [
-	"UIManager default inform:
-		'ChatPharo is currently in beta. You might encounter bugs or memory issues that could halt your image.'"
 
-"	self class loadBackgroundImage."
+	"	self class loadBackgroundImage."
+
 	KMRepository reset.
 	ChatPharoShortcuts installAsGlobalCategory.
-"	SystemAnnouncer uniqueInstance when: UIThemeChanged send: #loadBackgroundImage to: self class."
-	"Ensure the Spec confirmation presenter has registered itself as the
-	 gate. In fresh Metacello loads this is done by its class-side
-	 #initialize, but explicit re-registration here makes reloads safe."
-	(Smalltalk at: #ChatPharoToolConfirmationPresenter ifAbsent: [ nil ])
-		ifNotNil: [ :cls | cls initialize ].
+	(Smalltalk at: #ChatPharoToolConfirmationPresenter ifAbsent: [ nil ]) ifNotNil: [ :cls | cls initialize ].
 	self class showFirstLaunchSetupIfNeeded
 ]
 
