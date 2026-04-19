@@ -271,17 +271,14 @@ ChatPharoSettings class >> settingsFileReference [
 
 { #category : 'custom tools' }
 ChatPharoSettings >> addCustomTool: aCustomTool [
-	"Add a custom tool to the collection"
 
-	(customTools anySatisfy: [ :t | t name = aCustomTool name ]) ifTrue: [
-		self error: 'A tool with this name already exists' ].
+	(customTools anySatisfy: [ :t | t name = aCustomTool name ]) ifTrue: [ self error: 'A tool with this name already exists' ].
 	customTools add: aCustomTool.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logFrontend: 'Custom tool added'
-		details: (Dictionary new
-			at: 'tool' put: aCustomTool name;
-			yourself)
+	ChatPharoLogger logFrontend: 'Custom tool added' details: (Dictionary new
+			 at: 'tool' put: aCustomTool name;
+			 yourself)
 ]
 
 { #category : 'skills' }
@@ -303,22 +300,19 @@ ChatPharoSettings >> addSkillFilePath: aPathString [
 
 { #category : 'advisor' }
 ChatPharoSettings >> advisorDefaultsConfigured [
-	"Returns whether the user has configured advisor defaults during setup"
 
 	^ advisorDefaultsConfigured ifNil: [ advisorDefaultsConfigured := false ]
 ]
 
 { #category : 'advisor' }
 ChatPharoSettings >> advisorDefaultsConfigured: aBoolean [
-	"Set whether advisor defaults have been configured"
 
 	advisorDefaultsConfigured := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logSystem: 'Advisor defaults configuration status updated'
-		details: (Dictionary new
-			at: 'advisorDefaultsConfigured' put: aBoolean;
-			yourself)
+	ChatPharoLogger logSystem: 'Advisor defaults configuration status updated' details: (Dictionary new
+			 at: 'advisorDefaultsConfigured' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'initialization' }
@@ -329,11 +323,9 @@ ChatPharoSettings >> agent [
 
 { #category : 'extensions' }
 ChatPharoSettings >> allBrowserToolsEnabled [
-        "Return true if all available browser tools are enabled."
-
-        | allToolNames |
-        allToolNames := ChatPharoBrowserEnvironment new tools collect: [ :t | t name ].
-        ^ allToolNames allSatisfy: [ :name | browserToolsEnabled includes: name ]
+	| allToolNames |
+	allToolNames := ChatPharoBrowserEnvironment new tools collect: [ :t | t name ].
+	^ allToolNames allSatisfy: [ :name | browserToolsEnabled includes: name ]
 ]
 
 { #category : 'accessing' }
@@ -355,19 +347,15 @@ ChatPharoSettings >> askFeatureEnabled: aBoolean [
 
 { #category : 'custom tools' }
 ChatPharoSettings >> assertCustomToolNameAvailable: toolName excluding: excludedTool [
-	"Validate that the tool name is not used by custom or built-in tools."
 
-	(self customTools anySatisfy: [ :tool |
-		 tool ~~ excludedTool and: [ tool name = toolName ] ]) ifTrue: [
+	(self customTools anySatisfy: [ :tool | tool ~~ excludedTool and: [ tool name = toolName ] ]) ifTrue: [
 		self error: 'A tool with this name already exists' ].
-	((ChatPharoBrowserEnvironment new tools collect: [ :tool | tool name ])
-		includes: toolName) ifTrue: [
+	((ChatPharoBrowserEnvironment new tools collect: [ :tool | tool name ]) includes: toolName) ifTrue: [
 		self error: 'A tool with this name already exists' ]
 ]
 
 { #category : 'skills' }
 ChatPharoSettings >> automaticSkillsEnabled [
-	"Whether skills can be automatically triggered based on query keywords"
 
 	^ automaticSkillsEnabled ifNil: [ automaticSkillsEnabled := true ]
 ]
@@ -394,19 +382,20 @@ ChatPharoSettings >> availableApiChoices [
 { #category : 'initialization' }
 ChatPharoSettings >> availableApis [
 
+	"TODO: thos agents must be declare from the agent subclasses"
 	^ {
 		  ChatPharoNullAgent.
 		  ChatPharoGeminiAgent.
 		  ChatPharoOllamaAgent.
-		ChatPharoLMStudioAgent.
+		  ChatPharoLMStudioAgent.
 		  ChatPharoMistralAgent.
 		  ChatPharoClaudeAgent.
-		  ChatPharoDeepSeekAgent. ChatPharoOpenAIAgent }
+		  ChatPharoDeepSeekAgent.
+		  ChatPharoOpenAIAgent }
 ]
 
 { #category : 'initialization' }
 ChatPharoSettings >> availableUserLevels [
-	"Returns the available user experience levels"
 
 	^ #( 'beginner' 'intermediate' 'advanced' )
 ]
@@ -530,30 +519,22 @@ ChatPharoSettings >> commitMessageTemplate: aString [
 
 { #category : 'safety' }
 ChatPharoSettings >> confirmBeforeMutatingTools [
-	"Whether mutating tool calls coming from the model (create class,
-	 add method, sandbox_evaluate, ...) must be confirmed by the user
-	 before running. Default: true (safe by default)."
 
 	^ confirmBeforeMutatingTools ifNil: [ confirmBeforeMutatingTools := true ]
 ]
 
 { #category : 'safety' }
 ChatPharoSettings >> confirmBeforeMutatingTools: aBoolean [
-	"Toggle the confirmation gate for mutating tool calls."
-
 	confirmBeforeMutatingTools := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger
-		logSystem: 'Tool confirmation gate toggled'
-		details: (Dictionary new
-			at: 'enabled' put: aBoolean;
-			yourself)
+	ChatPharoLogger logSystem: 'Tool confirmation gate toggled' details: (Dictionary new
+			 at: 'enabled' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'custom tools' }
 ChatPharoSettings >> customTools [
-	"Return the collection of user-defined custom tools"
 
 	^ customTools ifNil: [ customTools := OrderedCollection new ]
 ]
@@ -572,10 +553,8 @@ ChatPharoSettings >> customTools: aCollection [
 
 { #category : 'custom tools' }
 ChatPharoSettings >> customToolsAsClients [
-	"Return enabled custom tools converted to ChatPharoClient instances"
 
-	^ (self customTools select: [ :tool | tool enabled ])
-		collect: [ :tool | tool asChatPharoClient ]
+	^ (self customTools select: [ :tool | tool enabled ]) collect: [ :tool | tool asChatPharoClient ]
 ]
 
 { #category : 'extensions' }
@@ -621,6 +600,7 @@ ChatPharoSettings >> defaultBrowserToolsEnabled [
 { #category : 'accessing' }
 ChatPharoSettings >> defaultCommitMessageTemplate [
 
+	"TODO: the default commit message templare must be define from the UI"
 	^ '# Please enter the commit message for your changes.
 # Lines starting with # will be ignored, and an empty message aborts the commit.
 # On branch main, Fixes #
@@ -635,21 +615,24 @@ ChatPharoSettings >> defaultCommitMessageTemplate [
 { #category : 'extensions' }
 ChatPharoSettings >> defaultDebuggerSystemPrompt [
 
+	"TODO: the debugfger system prompt must be declare from the UI"
 	^ 'You are a Pharo debugging assistant. Explain the selected method and suggest likely root causes and concrete next debugging steps.'
 ]
 
 { #category : 'extensions' }
 ChatPharoSettings >> defaultIcebergSystemPrompt [
 
+
+	"TODO: this must be in the UI"
 	^ String streamContents: [ :stream |
-		stream
-			<< 'You are a Pharo developer generating an Iceberg commit message based on a diff.';
-			<< String lf;
-			<< 'Follow this commit template format and return ONLY the final commit message line:';
-			<< String lf;
-			<< '{{commitTemplate}}';
-			<< String lf;
-			<< 'Pick one prefix (feat:, fix:, refactor:, chore:, comment:) and write an imperative concise message.' ]
+			  stream
+				  << 'You are a Pharo developer generating an Iceberg commit message based on a diff.';
+				  << String lf;
+				  << 'Follow this commit template format and return ONLY the final commit message line:';
+				  << String lf;
+				  << '{{commitTemplate}}';
+				  << String lf;
+				  << 'Pick one prefix (feat:, fix:, refactor:, chore:, comment:) and write an imperative concise message.' ]
 ]
 
 { #category : 'developer' }
@@ -672,13 +655,11 @@ ChatPharoSettings >> developerId: aString [
 
 { #category : 'extensions' }
 ChatPharoSettings >> disableAllBrowserTools [
-        "Disable all browser tools."
 
-        browserToolsEnabled := OrderedCollection new.
-        self class setDefault: self.
-        self class saveDefault.
-        ChatPharoLogger logFrontend: 'All browser tools disabled'
-                details: Dictionary new
+	browserToolsEnabled := OrderedCollection new.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'All browser tools disabled' details: Dictionary new
 ]
 
 { #category : 'initialization' }
@@ -697,16 +678,14 @@ ChatPharoSettings >> disableBrowserTool: toolName [
 
 { #category : 'initialization' }
 ChatPharoSettings >> disableSkill: skillName [
-	"Disable a manually enabled skill"
 
 	skillsEnabled remove: skillName ifAbsent: [ ].
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logFrontend: 'Skill disabled'
-		details: (Dictionary new
-			at: 'skill' put: skillName;
-			at: 'remainingSkills' put: skillsEnabled asArray printString;
-			yourself)
+	ChatPharoLogger logFrontend: 'Skill disabled' details: (Dictionary new
+			 at: 'skill' put: skillName;
+			 at: 'remainingSkills' put: skillsEnabled asArray printString;
+			 yourself)
 ]
 
 { #category : 'accessing' }
@@ -727,15 +706,13 @@ ChatPharoSettings >> dynamicChatNamingEnabled: aBoolean [
 
 { #category : 'extensions' }
 ChatPharoSettings >> enableAllBrowserTools [
-        "Enable all available browser tools."
 
-        browserToolsEnabled := (ChatPharoBrowserEnvironment new tools collect: [ :t | t name ]) asOrderedCollection.
-        self class setDefault: self.
-        self class saveDefault.
-        ChatPharoLogger logFrontend: 'All browser tools enabled'
-                details: (Dictionary new
-                        at: 'tools' put: browserToolsEnabled asArray printString;
-                        yourself)
+	browserToolsEnabled := (ChatPharoBrowserEnvironment new tools collect: [ :t | t name ]) asOrderedCollection.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'All browser tools enabled' details: (Dictionary new
+			 at: 'tools' put: browserToolsEnabled asArray printString;
+			 yourself)
 ]
 
 { #category : 'initialization' }
@@ -754,17 +731,14 @@ maximumIterations := 3.
 
 { #category : 'initialization' }
 ChatPharoSettings >> enableSkill: skillName [
-	"Enable a skill for manual inclusion"
 
-	(skillsEnabled includes: skillName) ifFalse: [
-		skillsEnabled add: skillName ].
+	(skillsEnabled includes: skillName) ifFalse: [ skillsEnabled add: skillName ].
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logFrontend: 'Skill enabled'
-		details: (Dictionary new
-			at: 'skill' put: skillName;
-			at: 'skills' put: skillsEnabled asArray printString;
-			yourself)
+	ChatPharoLogger logFrontend: 'Skill enabled' details: (Dictionary new
+			 at: 'skill' put: skillName;
+			 at: 'skills' put: skillsEnabled asArray printString;
+			 yourself)
 ]
 
 { #category : 'ethics' }
@@ -811,22 +785,19 @@ ChatPharoSettings >> ethicsMandate: aString [
 
 { #category : 'safety' }
 ChatPharoSettings >> externalApiWarningDismissed [
-	"Whether the user has dismissed the external API data warning"
 
 	^ externalApiWarningDismissed ifNil: [ externalApiWarningDismissed := false ]
 ]
 
 { #category : 'safety' }
 ChatPharoSettings >> externalApiWarningDismissed: aBoolean [
-	"Set whether the external API data warning has been dismissed"
 
 	externalApiWarningDismissed := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-	ChatPharoLogger logFrontend: 'External API warning dismissed status updated'
-		details: (Dictionary new
-			at: 'dismissed' put: aBoolean;
-			yourself)
+	ChatPharoLogger logFrontend: 'External API warning dismissed status updated' details: (Dictionary new
+			 at: 'dismissed' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'accessing' }
@@ -1007,36 +978,30 @@ ChatPharoSettings >> maximumIterations: aNumber [
 
 { #category : 'mcp' }
 ChatPharoSettings >> mcpEnabled [
-	"Whether MCP (Model Context Protocol) support is enabled"
 
 	^ mcpEnabled ifNil: [ mcpEnabled := false ]
 ]
 
 { #category : 'mcp' }
 ChatPharoSettings >> mcpEnabled: aBoolean [
-	"Enable or disable MCP support"
 
 	| wasEnabled registry |
 	wasEnabled := self mcpEnabled.
 	mcpEnabled := aBoolean.
 	self class setDefault: self.
 	self class saveDefault.
-
-	"Connect or disconnect servers based on enabled state"
-		registry := self mcpRegistry.
+	registry := self mcpRegistry.
 	registry ifNotNil: [
-		(wasEnabled not and: [ aBoolean ]) ifTrue: [ registry connectAll ].
-		(wasEnabled and: [ aBoolean not ]) ifTrue: [ registry disconnectAll ] ].
+			(wasEnabled not and: [ aBoolean ]) ifTrue: [ registry connectAll ].
+			(wasEnabled and: [ aBoolean not ]) ifTrue: [ registry disconnectAll ] ].
 
-	ChatPharoLogger logFrontend: 'MCP support toggled'
-		details: (Dictionary new
-			at: 'enabled' put: aBoolean;
-			yourself)
+	ChatPharoLogger logFrontend: 'MCP support toggled' details: (Dictionary new
+			 at: 'enabled' put: aBoolean;
+			 yourself)
 ]
 
 { #category : 'mcp' }
 ChatPharoSettings >> mcpRegistry [
-	"Return the MCP registry that manages all MCP servers"
 
 	| registryClass |
 	registryClass := Smalltalk at: #ChatPharoMCPRegistry ifAbsent: [ ^ nil ].
@@ -1045,7 +1010,6 @@ ChatPharoSettings >> mcpRegistry [
 
 { #category : 'mcp' }
 ChatPharoSettings >> mcpRegistry: aRegistry [
-	"Set the MCP registry"
 
 	mcpRegistry := aRegistry.
 	self class setDefault: self.
@@ -1054,31 +1018,25 @@ ChatPharoSettings >> mcpRegistry: aRegistry [
 
 { #category : 'mcp' }
 ChatPharoSettings >> mcpToolsAsClients [
-	"Return all MCP tools as ChatPharoClient instances if MCP is enabled"
 
 	self mcpEnabled ifFalse: [ ^ OrderedCollection new ].
-	^ self mcpRegistry
-		  ifNil: [ OrderedCollection new ]
-		  ifNotNil: [ :registry | registry allToolsAsClients ]
+	^ self mcpRegistry ifNil: [ OrderedCollection new ] ifNotNil: [ :registry | registry allToolsAsClients ]
 ]
 
 { #category : 'memory' }
 ChatPharoSettings >> memory [
-	"Return the memory manager instance, if any."
 
 	^ memory
 ]
 
 { #category : 'memory' }
 ChatPharoSettings >> memory: aMemory [
-	"Set a memory manager instance for this settings object."
 
 	memory := aMemory
 ]
 
 { #category : 'memory' }
 ChatPharoSettings >> memoryAutoSummarize [
-	"Whether to automatically summarize conversations for memory"
 
 	^ memoryAutoSummarize ifNil: [ memoryAutoSummarize := true ]
 ]
@@ -1097,7 +1055,6 @@ ChatPharoSettings >> memoryAutoSummarize: aBoolean [
 
 { #category : 'memory' }
 ChatPharoSettings >> memoryEnabled [
-	"Whether long-term memory tracking is enabled"
 
 	^ memoryEnabled ifNil: [ memoryEnabled := true ]
 ]
@@ -1116,8 +1073,6 @@ ChatPharoSettings >> memoryEnabled: aBoolean [
 
 { #category : 'memory' }
 ChatPharoSettings >> memoryMaxItems [
-	"Maximum number of memory items to keep"
-
 	^ memoryMaxItems ifNil: [ memoryMaxItems := 1000 ]
 ]
 
@@ -1135,8 +1090,8 @@ ChatPharoSettings >> memoryMaxItems: aNumber [
 
 { #category : 'memory' }
 ChatPharoSettings >> memoryRetentionDays [
-	"Number of days to retain memories"
-
+	
+	"TODO: is this really necessary ?"
 	^ memoryRetentionDays ifNil: [ memoryRetentionDays := 30 ]
 ]
 
@@ -1213,7 +1168,6 @@ self multivers ifNil: [ ^ self ].
 
 { #category : 'private' }
 ChatPharoSettings >> newConfiguredSandbox [
-	"Create and return a new sandbox configured with current settings"
 
 	| sandbox |
 	sandbox := ChatPharoSandbox new.
@@ -1232,25 +1186,24 @@ ChatPharoSettings >> presenter [
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetAdvisorDefaultsConfigured: aBoolean [
-	"Set advisorDefaultsConfigured without triggering save. Used during loading."
+
 	advisorDefaultsConfigured := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetCognitiveLoadBudget: aNumber [
-	"Set cognitiveLoadBudget without triggering save. Used during loading."
+
 	cognitiveLoadBudget := aNumber
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetConfirmBeforeMutatingTools: aBoolean [
-	"Set confirmBeforeMutatingTools without triggering save. Used during loading."
+
 	confirmBeforeMutatingTools := aBoolean
 ]
 
 { #category : 'private' }
 ChatPharoSettings >> privateSetDeveloperId: aString [
-	"Set developer ID without triggering save. Used during loading."
 	developerId := aString
 ]
 
