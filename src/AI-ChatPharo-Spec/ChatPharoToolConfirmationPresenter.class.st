@@ -160,7 +160,8 @@ ChatPharoToolConfirmationPresenter >> actionLabel [
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> actionLabel: aString [
 
-	actionLabel := aString
+		actionLabel := aString.
+	headlineLabel ifNotNil: [ headlineLabel label: self actionLabel ]
 ]
 
 { #category : 'accessing' }
@@ -172,7 +173,8 @@ ChatPharoToolConfirmationPresenter >> argumentsDict [
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> argumentsDict: aDictionary [
 
-	argumentsDict := aDictionary
+	argumentsDict := aDictionary.
+	argumentsTable ifNotNil: [ argumentsTable items: self argumentsRows ]
 ]
 
 { #category : 'private' }
@@ -331,7 +333,10 @@ ChatPharoToolConfirmationPresenter >> summaryString [
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> summaryString: aString [
 
-	summaryString := aString
+		summaryString := aString.
+	descriptionText ifNotNil: [
+		descriptionText text: (summaryString ifNil: [
+			'ChatPharo wants to modify your image. Review the arguments below before authorising this call.' ]) ]
 ]
 
 { #category : 'accessing' }
@@ -343,5 +348,7 @@ ChatPharoToolConfirmationPresenter >> toolName [
 { #category : 'accessing' }
 ChatPharoToolConfirmationPresenter >> toolName: aString [
 
-	toolName := aString
+	
+	toolName := aString.
+	toolNameLabel ifNotNil: [ toolNameLabel label: 'tool: ', (toolName ifNil: [ '' ]) ]
 ]
