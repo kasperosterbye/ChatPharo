@@ -46,10 +46,11 @@ ChatPharoToolConfirmationDecision class >> deny [
 { #category : 'instance creation' }
 ChatPharoToolConfirmationDecision class >> denyWithReason: aString [
 
+	"IMPLEMNENT WHY AS REASON from the human"
 	^ self new
-		outcome: #deny;
-		reason: aString;
-		yourself
+		  outcome: #deny;
+		  reason: aString;
+		  yourself
 ]
 
 { #category : 'testing' }

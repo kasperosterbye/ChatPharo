@@ -22,30 +22,24 @@ Class {
 
 { #category : 'confirmation' }
 ChatPharoToolConfirmationFallbackGate >> confirmToolNamed: aToolName arguments: anArguments action: actionLabel summary: summaryString [
-	"Open a modal choice using UIManager. The user picks one of:
-	   Allow        - run this once
-	   Always allow - run and remember for this session
-	   Deny         - cancel the tool call
-	 Closing the dialog (Cancel) is treated as denial."
 
 	| title message choice |
-	title := 'ChatPharo · Confirm ', actionLabel.
+	title := 'ChatPharo · Confirm ' , actionLabel.
 	message := String streamContents: [ :s |
-		s nextPutAll: 'The AI wants to perform the following action on your live image:'.
-		s cr; cr.
-		s nextPutAll: summaryString.
-		s cr.
-		s nextPutAll: 'Do you authorise this operation?' ].
+			           s nextPutAll: 'The ChatPharo wants to perform the following action on your image:'.
+			           s
+				           cr;
+				           cr.
+			           s nextPutAll: summaryString.
+			           s cr.
+			           s nextPutAll: 'Do you authorise this operation?' ].
 
 	choice := [
-		UIManager default
-			chooseFrom: #('Allow once' 'Always allow in this chat' 'Deny')
-			title: title, String cr, message ]
-		on: Error
-		do: [ :e | 0 ].
+	          UIManager default chooseFrom: #( 'Allow once' 'Always allow in this chat' 'Deny' ) title: title , String cr , message ]
+		          on: Error
+		          do: [ :e | 0 ].
 
 	choice = 1 ifTrue: [ ^ ChatPharoToolConfirmationDecision allow ].
 	choice = 2 ifTrue: [ ^ ChatPharoToolConfirmationDecision always ].
-	^ ChatPharoToolConfirmationDecision
-		denyWithReason: 'The user declined to run ', aToolName, '.'
+	^ ChatPharoToolConfirmationDecision denyWithReason: 'The user declined to run ' , aToolName , '.'
 ]

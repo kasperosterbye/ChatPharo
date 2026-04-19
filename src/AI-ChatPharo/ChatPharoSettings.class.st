@@ -520,6 +520,14 @@ ChatPharoSettings >> commitMessageTemplate [
 	^ commitMessageTemplate ifNil: [ commitMessageTemplate := self defaultCommitMessageTemplate ]
 ]
 
+{ #category : 'accessing' }
+ChatPharoSettings >> commitMessageTemplate: aString [
+
+	commitMessageTemplate := aString.
+	self class setDefault: self.
+	self class saveDefault
+]
+
 { #category : 'safety' }
 ChatPharoSettings >> confirmBeforeMutatingTools [
 	"Whether mutating tool calls coming from the model (create class,
@@ -541,14 +549,6 @@ ChatPharoSettings >> confirmBeforeMutatingTools: aBoolean [
 		details: (Dictionary new
 			at: 'enabled' put: aBoolean;
 			yourself)
-]
-
-{ #category : 'accessing' }
-ChatPharoSettings >> commitMessageTemplate: aString [
-
-	commitMessageTemplate := aString.
-	self class setDefault: self.
-	self class saveDefault
 ]
 
 { #category : 'custom tools' }
@@ -1243,6 +1243,12 @@ ChatPharoSettings >> privateSetCognitiveLoadBudget: aNumber [
 ]
 
 { #category : 'private' }
+ChatPharoSettings >> privateSetConfirmBeforeMutatingTools: aBoolean [
+	"Set confirmBeforeMutatingTools without triggering save. Used during loading."
+	confirmBeforeMutatingTools := aBoolean
+]
+
+{ #category : 'private' }
 ChatPharoSettings >> privateSetDeveloperId: aString [
 	"Set developer ID without triggering save. Used during loading."
 	developerId := aString
@@ -1264,12 +1270,6 @@ ChatPharoSettings >> privateSetEthicsDirectorEnabled: aBoolean [
 ChatPharoSettings >> privateSetEthicsMandate: aString [
 	"Set ethicsMandate without triggering save. Used during loading."
 	ethicsMandate := aString
-]
-
-{ #category : 'private' }
-ChatPharoSettings >> privateSetConfirmBeforeMutatingTools: aBoolean [
-	"Set confirmBeforeMutatingTools without triggering save. Used during loading."
-	confirmBeforeMutatingTools := aBoolean
 ]
 
 { #category : 'private' }
