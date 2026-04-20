@@ -27,7 +27,8 @@ Class {
 		'selectedLevel',
 		'levelButtons',
 		'tutorialCheckbox',
-		'useAdvisorDefaults'
+		'useAdvisorDefaults',
+		'privacyConsentCheckbox'
 	],
 	#category : 'AI-ChatPharo-Spec-Setup',
 	#package : 'AI-ChatPharo-Spec',
@@ -201,6 +202,31 @@ ChatPharoSetupPresenter >> generateLocalDeveloperId [
 	developerIdInput text: token.
 	statusLabel label: 'Local Developer ID generated. Click Verify to continue.'.
 	verifyButton enabled: true
+]
+
+{ #category : 'layout' }
+ChatPharoSetupPresenter >> handleWelcomeContinue [
+	"Confirm consent before allowing user to continue from welcome step."
+
+	| answer |
+	(privacyConsentCheckbox state not ) ifTrue: [
+		answer := ConfirmationRequest signal: 'Do you accept the privacy and concerns ?'.
+		answer
+			ifFalse: [
+				self inform: 'You cannot use our tools without accepting the privacy and setup concerns. Please contact us and tell us what does not work for you.' ]
+			ifTrue: [
+				self inform: 'Please check or uncheck the consent boxes, then click Get Started again.' ].
+		^ self ].
+
+	(privacyConsentCheckbox state ) ifFalse: [
+		self inform: 'Please accept privacy terms to continue.'.
+		^ self ].
+
+	answer := ConfirmationRequest signal: 'Do you confirm?'.
+	answer
+		ifTrue: [ self showDeveloperStep ]
+		ifFalse: [
+			self inform: 'You cannot use our tools without accepting the privacy and setup concerns. Please contact us and tell us what does not work for you.' ]
 ]
 
 { #category : 'initialization' }
@@ -630,7 +656,7 @@ ChatPharoSetupPresenter >> showUserInfoStep [
 ChatPharoSetupPresenter >> showWelcomeStep [
 	"Show the welcome step with privacy notice."
 
-	| welcomeContainer privacyLabel privacyDetailLabel termsButton continueButton configureLaterButton buttonRow |
+	| welcomeContainer privacyLabel termsButton continueButton configureLaterButton buttonRow |
 	currentStep := #welcome.
 
 	titleLabel label: 'Welcome to ChatPharo'.
@@ -638,48 +664,49 @@ ChatPharoSetupPresenter >> showWelcomeStep [
 	statusLabel label: ''.
 
 	privacyLabel := self newLabel
-		label: 'ChatPharo is fully private.';
-		yourself.
+		                label: 'ChatPharo is fully private.';
+		                yourself.
 
-	privacyDetailLabel := self newLabel
-		label: 'We do not collect any personal data. All conversations and settings stay on your machine.';
-		yourself.
+	privacyConsentCheckbox := self newCheckBox
+		                          label: 'I agree with the privacy policy';
+		                          state: false;
+		                          yourself.
 
 	termsButton := self newButton
-		label: 'Privacy Policy & Terms';
-		icon: (self iconNamed: #glamorousBrowse);
-		action: [ WebBrowser openOn: 'https://pharo-llm.github.io/privacy.html' ];
-		yourself.
+		               label: 'Privacy Policy & Terms';
+		               icon: (self iconNamed: #glamorousBrowse);
+		               action: [ WebBrowser openOn: 'https://pharo-llm.github.io/privacy.html' ];
+		               yourself.
 
 	continueButton := self newButton
-		label: 'Get Started';
-		icon: (self iconNamed: #glamorousGo);
-		action: [ self showDeveloperStep ];
-		yourself.
+		                  label: 'Get Started';
+		                  icon: (self iconNamed: #glamorousGo);
+		                 action: [ self handleWelcomeContinue ];
+		                  yourself.
 
 	configureLaterButton := self newButton
-		label: 'Configure later';
-		action: [ self configureLater ];
-		yourself.
+		                        label: 'Configure later';
+		                        action: [ self handleWelcomeContinue ];
+		                        yourself.
 
 	welcomeContainer := SpBoxLayout newTopToBottom
-		spacing: 16;
-		add: privacyLabel expand: false;
-		add: privacyDetailLabel expand: false;
-		add: termsButton expand: false;
-		yourself.
+		                    spacing: 16;
+		                    add: privacyLabel expand: false;
+		                    add: termsButton expand: false;
+		                    yourself.
 
 	buttonRow := SpBoxLayout newHorizontal
-		spacing: 8;
-		add: continueButton expand: false;
-		add: configureLaterButton expand: false;
-		yourself.
+		             spacing: 8;
+		             add: continueButton expand: false;
+		             add: configureLaterButton expand: false;
+		             yourself.
 
 	contentContainer layout: (SpBoxLayout newTopToBottom
-		spacing: 12;
-		add: welcomeContainer expand: true;
-		add: buttonRow expand: false;
-		yourself).
+			 spacing: 12;
+			 add: welcomeContainer expand: true;
+			 add: privacyConsentCheckbox expand: false;
+			 add: buttonRow expand: false;
+			 yourself).
 
 	self layout: self defaultLayout
 ]
