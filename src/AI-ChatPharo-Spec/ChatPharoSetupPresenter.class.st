@@ -205,25 +205,19 @@ ChatPharoSetupPresenter >> generateLocalDeveloperId [
 ]
 
 { #category : 'layout' }
+ChatPharoSetupPresenter >> handleWelcomeConfigureLater [
+
+	privacyConsentCheckbox state
+		ifTrue: [ self configureLater ]
+		ifFalse: [
+			self inform: 'You cannot use our tools without accepting the privacy and setup concerns. Please contact us and tell us what does not work for you.' ]
+]
+
+{ #category : 'layout' }
 ChatPharoSetupPresenter >> handleWelcomeContinue [
-	"Confirm consent before allowing user to continue from welcome step."
 
-	| answer |
-	(privacyConsentCheckbox state not ) ifTrue: [
-		answer := ConfirmationRequest signal: 'Do you accept the privacy and concerns ?'.
-		answer
-			ifFalse: [
-				self inform: 'You cannot use our tools without accepting the privacy and setup concerns. Please contact us and tell us what does not work for you.' ]
-			ifTrue: [
-				self inform: 'Please check or uncheck the consent boxes, then click Get Started again.' ].
-		^ self ].
 
-	(privacyConsentCheckbox state ) ifFalse: [
-		self inform: 'Please accept privacy terms to continue.'.
-		^ self ].
-
-	answer := ConfirmationRequest signal: 'Do you confirm?'.
-	answer
+privacyConsentCheckbox state
 		ifTrue: [ self showDeveloperStep ]
 		ifFalse: [
 			self inform: 'You cannot use our tools without accepting the privacy and setup concerns. Please contact us and tell us what does not work for you.' ]
@@ -654,7 +648,6 @@ ChatPharoSetupPresenter >> showUserInfoStep [
 
 { #category : 'initialization' }
 ChatPharoSetupPresenter >> showWelcomeStep [
-	"Show the welcome step with privacy notice."
 
 	| welcomeContainer privacyLabel termsButton continueButton configureLaterButton buttonRow |
 	currentStep := #welcome.
@@ -681,12 +674,12 @@ ChatPharoSetupPresenter >> showWelcomeStep [
 	continueButton := self newButton
 		                  label: 'Get Started';
 		                  icon: (self iconNamed: #glamorousGo);
-		                 action: [ self handleWelcomeContinue ];
+		                  action: [ self handleWelcomeContinue ];
 		                  yourself.
 
 	configureLaterButton := self newButton
 		                        label: 'Configure later';
-		                        action: [ self handleWelcomeContinue ];
+		                        action: [ self handleWelcomeConfigureLater ];
 		                        yourself.
 
 	welcomeContainer := SpBoxLayout newTopToBottom
