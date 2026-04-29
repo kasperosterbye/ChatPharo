@@ -76,6 +76,7 @@ ChatPharoChatPresenter >> connectPresenters [
 			model cancelMessage.
 			self hideThinking.
 			cancelButton visible: false.
+			self showCommandResponse: 'Operations cancelled by the user.'.
 			messageTextField text: ''.
 			messageTextField enabled: true.
 			messageTextField takeKeyboardFocus.
