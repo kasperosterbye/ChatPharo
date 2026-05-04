@@ -490,7 +490,7 @@ ChatPharoChat >> resetConversation [
 { #category : 'running' }
 ChatPharoChat >> sendMessage: aText [
 
-	| answer multivers promptWithMemory historyPrefix combinedPrefix |
+	| answer multivers promptWithMemory historyPrefix combinedPrefix  |
 	self messageLimitReached ifTrue: [
 		^ self reportMessageLimitReached ].
 	self addUserMessage: aText.
@@ -504,13 +504,23 @@ ChatPharoChat >> sendMessage: aText [
 	(multivers notNil and: [ multivers canExecute ]) ifTrue: [ ^ self sendMessageViaMultivers: aText ].
 	promptProcess := [
 		                 [
-			                 | backend |
+			                 | backend retryHandler|
 			                 backend := self agent.
 			                 backend onToolExecution: [ :toolName | self triggerToolExecution: toolName ].
 			                 promptWithMemory := self buildPromptPrefixWithMemoryFor: aText.
 
 			                 backend promptPrefix: promptWithMemory.
-			                 answer := backend getResponseForPrompt: aText.
+			                  
+			                 "Use retry handler if enabled"
+			                 ChatPharoSettings default retryEnabled
+				                 ifTrue: [
+					                 retryHandler := ChatPharoSettings default createRetryHandler.
+					                 retryHandler onRetryAttempt: [ :attempt :max |
+						                 onErrorReceived ifNotNil: [ :blk |
+							                 blk value: 'Connection lost. Retrying attempt ' , attempt asString , '/' , max asString , '...' ] ].
+					                 answer := retryHandler executeWithRetry: [ backend getResponseForPrompt: aText ] ]
+				                 ifFalse: [
+					                 answer := backend getResponseForPrompt: aText ].
 			                 cache at: aText put: answer.
 			                 self addAssistantMessage: answer.
 			                 onAnswerReceived ifNotNil: [ :blk | blk value: messages last ] ]
@@ -526,7 +536,7 @@ ChatPharoChat >> sendMessage: aText [
 { #category : 'running' }
 ChatPharoChat >> sendMessage: aText withAttachments: attachmentCollection [
 
-	| answer multivers promptWithMemory textWithAttachments |
+	| answer multivers promptWithMemory textWithAttachments  |
 		self messageLimitReached ifTrue: [
 		^ self reportMessageLimitReached ].
 	self addUserMessage: aText withAttachments: attachmentCollection.
@@ -567,12 +577,21 @@ ChatPharoChat >> sendMessage: aText withAttachments: attachmentCollection [
 	(multivers notNil and: [ multivers canExecute ]) ifTrue: [ ^ self sendMessageViaMultivers: textWithAttachments ].
 	promptProcess := [
 		                 [
-			                 | backend |
+			                 | backend retryHandler |
 			                 backend := self agent.
 			                 backend onToolExecution: [ :toolName | self triggerToolExecution: toolName ].
 			                 promptWithMemory := self buildPromptPrefixWithMemoryFor: textWithAttachments.
 			                 backend promptPrefix: promptWithMemory.
-			                 answer := backend getResponseForPrompt: textWithAttachments.
+			                 "Use retry handler if enabled"
+			                 ChatPharoSettings default retryEnabled
+				                 ifTrue: [
+					                 retryHandler := ChatPharoSettings default createRetryHandler.
+					                 retryHandler onRetryAttempt: [ :attempt :max |
+						                 onErrorReceived ifNotNil: [ :blk |
+							                 blk value: 'Connection lost. Retrying attempt ' , attempt asString , '/' , max asString , '...' ] ].
+					                 answer := retryHandler executeWithRetry: [ backend getResponseForPrompt: textWithAttachments ] ]
+				                 ifFalse: [
+					                 answer := backend getResponseForPrompt: textWithAttachments ].
 			                 cache at: textWithAttachments put: answer.
 			                 self addAssistantMessage: answer.
 			                 onAnswerReceived ifNotNil: [ :blk | blk value: messages last ].
@@ -591,20 +610,29 @@ ChatPharoChat >> sendMessage: aText withAttachments: attachmentCollection [
 { #category : 'running' }
 ChatPharoChat >> sendMessageViaMultivers: aText [
 
-	| multivers |
+	| multivers  |
 		self messageLimitReached ifTrue: [
 		^ self reportMessageLimitReached ].
 	multivers := ChatPharoSettings default multivers.
 
 	promptProcess := [
 		                 [
-			                 | answer |
+			                 | answer retryHandler |
 			                 ChatPharoLogger logBackend: 'Starting multivers chain execution' details: (Dictionary new
 					                  at: 'prompt' put: aText;
 					                  at: 'stepsCount' put: multivers stepsCount;
 					                  yourself).
 
-			                 answer := multivers executeForPrompt: aText.
+			                 "Use retry handler if enabled"
+			                 ChatPharoSettings default retryEnabled
+				                 ifTrue: [
+					                 retryHandler := ChatPharoSettings default createRetryHandler.
+					                 retryHandler onRetryAttempt: [ :attempt :max |
+						                 onErrorReceived ifNotNil: [ :blk |
+							                 blk value: 'Connection lost. Retrying attempt ' , attempt asString , '/' , max asString , '...' ] ].
+					                 answer := retryHandler executeWithRetry: [ multivers executeForPrompt: aText ] ]
+				                 ifFalse: [
+					                 answer := multivers executeForPrompt: aText ].
 			                 cache at: aText put: answer.
 			                 self addAssistantMessage: answer.
 

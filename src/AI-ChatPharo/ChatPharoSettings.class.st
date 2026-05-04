@@ -70,7 +70,11 @@ Class {
 		'mcpRegistry',
 		'externalApiWarningDismissed',
 		'dynamicChatNamingEnabled',
-		'confirmBeforeMutatingTools'
+		'confirmBeforeMutatingTools',
+		'retryEnabled',
+		'retryMaxAttempts',
+		'retryBaseDelay',
+		'retryMaxDelay'
 	],
 	#classInstVars : [
 		'Default'
@@ -199,6 +203,14 @@ ChatPharoSettings class >> loadOrNew [
 					  settings privateSetExternalApiWarningDismissed: false ].
 				  settings confirmBeforeMutatingTools ifNil: [
 					  settings privateSetConfirmBeforeMutatingTools: true ].
+				 settings retryEnabled ifNil: [
+					  settings privateSetRetryEnabled: true ].
+				  settings retryMaxAttempts ifNil: [
+					  settings privateSetRetryMaxAttempts: 3 ].
+				  settings retryBaseDelay ifNil: [
+					  settings privateSetRetryBaseDelay: 2 ].
+				  settings retryMaxDelay ifNil: [
+					  settings privateSetRetryMaxDelay: 30 ].
 				  ^ settings ]
 				  on: Error
 				  do: [ ^ self new ] ]
@@ -531,6 +543,18 @@ ChatPharoSettings >> confirmBeforeMutatingTools: aBoolean [
 	ChatPharoLogger logSystem: 'Tool confirmation gate toggled' details: (Dictionary new
 			 at: 'enabled' put: aBoolean;
 			 yourself)
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> createRetryHandler [
+	"Create a configured retry handler based on current settings"
+	
+	| handler |
+	handler := ChatPharoRetryHandler new.
+	handler maxAttempts: self retryMaxAttempts.
+	handler baseDelay: self retryBaseDelay.
+	handler maxDelay: self retryMaxDelay.
+	^ handler
 ]
 
 { #category : 'custom tools' }
@@ -887,6 +911,10 @@ ChatPharoSettings >> initialize [
 	mcpEnabled := false.
 	mcpRegistry := ChatPharoMCPRegistry new.
 	confirmBeforeMutatingTools := true.
+	retryEnabled := true.
+	retryMaxAttempts := 3.
+	retryBaseDelay := 2.
+	retryMaxDelay := 30.
 	ChatPharoLogger loggingEnabled: true.
 	ChatPharoLogger
 		logSystem: 'Settings initialized'
@@ -1287,6 +1315,26 @@ ChatPharoSettings >> privateSetMessageLimit: aNumber [
 ]
 
 { #category : 'private' }
+ChatPharoSettings >> privateSetRetryBaseDelay: aNumber [
+	retryBaseDelay := aNumber
+]
+
+{ #category : 'private' }
+ChatPharoSettings >> privateSetRetryEnabled: aBoolean [
+	retryEnabled := aBoolean
+]
+
+{ #category : 'private' }
+ChatPharoSettings >> privateSetRetryMaxAttempts: anInteger [
+	retryMaxAttempts := anInteger
+]
+
+{ #category : 'private' }
+ChatPharoSettings >> privateSetRetryMaxDelay: aNumber [
+	retryMaxDelay := aNumber
+]
+
+{ #category : 'private' }
 ChatPharoSettings >> privateSetSandboxEnabled: aBoolean [
 
 	sandboxEnabled := aBoolean
@@ -1406,6 +1454,86 @@ ChatPharoSettings >> requestTimeoutSeconds: anInteger [
 	self ethicsDirector requestTimeoutSeconds: anInteger.
 	self class setDefault: self.
 	self class saveDefault
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryBaseDelay [
+	"Base delay in seconds before first retry"
+	
+	^ retryBaseDelay ifNil: [ retryBaseDelay := 2 ]
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryBaseDelay: aNumber [
+	"Set base delay in seconds before first retry"
+	
+	retryBaseDelay := aNumber max: 0.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'Retry base delay updated'
+		details: (Dictionary new
+			at: 'value' put: retryBaseDelay;
+			yourself)
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryEnabled [
+	"Whether automatic retry is enabled for API calls"
+	
+	^ retryEnabled ifNil: [ retryEnabled := true ]
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryEnabled: aBoolean [
+	"Enable or disable automatic retry for API calls"
+	
+	retryEnabled := aBoolean.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'Automatic retry toggled'
+		details: (Dictionary new
+			at: 'enabled' put: aBoolean;
+			yourself)
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryMaxAttempts [
+	"Maximum number of retry attempts (including initial attempt)"
+	
+	^ retryMaxAttempts ifNil: [ retryMaxAttempts := 3 ]
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryMaxAttempts: anInteger [
+	"Set maximum number of retry attempts (must be at least 1)"
+	
+	retryMaxAttempts := anInteger max: 1.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'Retry max attempts updated'
+		details: (Dictionary new
+			at: 'value' put: retryMaxAttempts;
+			yourself)
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryMaxDelay [
+	"Maximum delay in seconds between retries"
+	
+	^ retryMaxDelay ifNil: [ retryMaxDelay := 30 ]
+]
+
+{ #category : 'retry' }
+ChatPharoSettings >> retryMaxDelay: aNumber [
+	"Set maximum delay in seconds between retries"
+	
+	retryMaxDelay := aNumber max: 0.
+	self class setDefault: self.
+	self class saveDefault.
+	ChatPharoLogger logFrontend: 'Retry max delay updated'
+		details: (Dictionary new
+			at: 'value' put: retryMaxDelay;
+			yourself)
 ]
 
 { #category : 'private' }
